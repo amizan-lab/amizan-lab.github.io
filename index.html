@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>編み算｜編み物のための計算ツール</title>
+<meta name="description" content="編み物のための計算ツール「編み算」。スマホで見やすい大きな文字で、毛糸の必要玉数などを計算できます。">
+<style>
+  :root { color-scheme: light; --y:#ffe600; --ink:#111111; --paper:#ffffff; --sub:#555555; --shadow:#b5b5b5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+    font-size:18px; line-height:1.7; }
+  main { max-width:560px; margin:0 auto; padding:18px 16px 48px; }
+  header { padding:22px 0 22px; border-bottom:1px solid var(--ink); margin-bottom:30px; }
+  .row { display:flex; align-items:flex-end; gap:12px; margin:0 0 10px; }
+  .yarn { flex:none; width:clamp(50px,15vw,66px); height:auto; overflow:visible; align-self:center; }
+  h1 { margin:0; line-height:1.2; white-space:nowrap; font-size:clamp(38px,13vw,54px); font-weight:300; letter-spacing:.16em; }
+  .en { font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:.3em; color:var(--sub); margin:0 0 .5em; white-space:nowrap; }
+  .sub { margin:0; font-size:14px; color:#444; letter-spacing:.14em; }
+  h2 { font-size:15px; font-weight:700; letter-spacing:.2em; color:var(--sub); margin:0 0 12px; }
+  .tool { display:block; text-decoration:none; color:var(--ink); background:var(--paper);
+    border:3px solid var(--ink); box-shadow:6px 6px 0 var(--shadow); margin:0 6px 0 0; padding:18px 16px; }
+  .tool:active { transform:translate(3px,3px); box-shadow:3px 3px 0 var(--shadow); }
+  .tool:focus-visible { outline:4px solid var(--y); outline-offset:3px; }
+  .tool .name { display:block; font-size:21px; font-weight:900; line-height:1.4; }
+  .tool .name span { background:linear-gradient(transparent 50%,var(--y) 50%,var(--y) 92%,transparent 92%); padding:0 4px; margin:0 -4px; }
+  .tool .desc { display:block; font-size:16px; color:#333; margin-top:6px; }
+  .tool .go { display:block; text-align:right; font-weight:800; margin-top:8px; }
+  .fine { font-size:13px; line-height:1.7; color:var(--sub); margin:36px 2px 0; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="row"><svg class="yarn" viewBox="0 0 80 80" aria-hidden="true"><defs><clipPath id="yc"><circle cx="38" cy="38" r="30"/></clipPath></defs><circle cx="38" cy="38" r="30" fill="#ffe600"/><g fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><path d="M13 33 Q26 17 52 13"/><path d="M17 45 Q30 29 56 25"/><path d="M21 57 Q34 41 60 37"/></g><circle cx="38" cy="38" r="30" fill="none" stroke="#111" stroke-width="2.4"/><path d="M59 59 C66 66, 60 76, 74 76" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round"/></svg><h1>編み算</h1><p class="en">AMIZAN</p></div>
+    <p class="sub">編み物のための計算ツール</p>
+  </header>
+
+  <h2>ツール</h2>
+  <a class="tool" href="amizan_nantama.html">
+    <span class="name"><span>この糸なら何玉で編める？</span></span>
+    <span class="desc">編み図の糸と違う糸を使うときの、必要な玉数を計算します。</span>
+    <span class="go">開く →</span>
+  </a>
+
+  <p class="fine">各ツールの計算結果は目安です。実際に必要な量は、糸の状態や編み地によって変わります。</p>
+</main>
+</body>
+</html>
