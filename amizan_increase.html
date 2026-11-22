@@ -474,7 +474,7 @@ function show(d) {
   var leftTxt = '';
   if (d.showLeftLabels) {
     var lr = Array.from(new Set(d.L.map(function (o) { return o.row; }))).sort(function (a, b) { return a - b; });
-    leftTxt = '<div class="hint tight" style="margin-top:6px">右端は上の段、左端は ' + lr.join(', ') + ' 段目に増します（2目以上は、左端が1段あと）。</div>';
+    leftTxt = '<div class="hint tight" style="margin-top:6px">右端は ' + rows.join(', ') + ' 段目、左端はその次の ' + lr.join(', ') + ' 段目に増します（2目以上は、左端が1段あと）。</div>';
   }
   $('#r-left').innerHTML = leftTxt;
   var perSide = d.K, sideLine = d.side === 'both' ? ('片側 +' + perSide + '目（左右で +' + perSide * 2 + '目）') : ((d.side === 'right' ? '右側' : '左側') + ' +' + perSide + '目');
