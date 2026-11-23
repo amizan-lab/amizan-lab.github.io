@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>減らし目の編み図メーカー｜編み物の計算ツール 編み算</title>
+<meta name="description" content="「4-1-6」のような減らし目の指示から、編み図（記号なし）を作成します。">
+<style>
+  :root {
+    color-scheme: light;
+    --y: #ffe600;
+    --ink: #111111;
+    --paper: #ffffff;
+    --sub: #555555;
+    --error: #8a1007;
+    --shadow: #b5b5b5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 18px 16px 48px; }
+  button, input { font-family: inherit; color: var(--ink); }
+  button { cursor: pointer; }
+
+  .hero { margin: 4px 6px 22px 0; padding: 22px 0 20px; border-bottom: 3px solid var(--ink); }
+  .eyebrow {
+    display: inline-block; margin: 0; background: #333; color: #fff;
+    font-size: 13px; font-weight: 700; letter-spacing: .1em; padding: 1px 10px;
+  }
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(20px, 6.4vw, 27px);
+    line-height: 1.4;
+    font-weight: 900;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .mark { background: linear-gradient(transparent 50%, var(--y) 50%, var(--y) 92%, transparent 92%); padding: 0 4px; margin: 0 -4px; }
+  .lead { color: #333; font-size: 16px; margin: 0 0 20px; }
+
+  section {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--shadow);
+    margin: 0 6px 24px 0;
+    padding: 18px 16px;
+  }
+  h2 { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; margin: 0 0 6px; }
+  .badge {
+    flex: none; width: 30px; height: 30px;
+    background: var(--y); color: var(--ink); border: 2px solid var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900;
+  }
+  .hint { color: var(--sub); font-size: 15px; margin: 0 0 12px; }
+  .hint.tight { margin: 10px 0 0; }
+  .notes { font-size: 15px; color: #333; padding-left: 1.2em; margin: 0; }
+  .notes li { margin-bottom: 6px; }
+  .notes strong { font-weight: 800; color: var(--ink); background: linear-gradient(transparent 55%, var(--y) 55%); }
+  .wavy { text-decoration: underline wavy var(--ink); -webkit-text-decoration: underline wavy var(--ink); text-underline-offset: 4px; }
+
+  .input-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  input[type="text"] {
+    flex: 1; min-width: 0; height: 54px;
+    font-size: 24px; padding: 0 14px;
+    border: 3px solid var(--ink); border-radius: 0;
+    background: var(--paper); color: var(--ink);
+  }
+  input[type="text"]:focus { outline: none; box-shadow: 0 0 0 5px var(--y); }
+  .unit { font-size: 20px; font-weight: 700; min-width: 2.2em; }
+  .input-row.short input[type="text"] { flex: none; width: 60px; padding: 0 4px; text-align: center; }
+  label.field { display: block; font-size: 17px; font-weight: 700; margin-top: 14px; }
+
+  .triple { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .triple input[type="text"] { flex: 1 1 0; max-width: 76px; height: 54px; font-size: 22px; padding: 0 4px; text-align: center; }
+  .triple .u { flex: none; font-size: 17px; font-weight: 700; }
+  .del { flex: none; width: 44px; height: 54px; margin-left: auto; background: var(--paper); border: 3px solid var(--ink); border-radius: 0; font-size: 18px; line-height: 1; }
+  .rowcap { font-size: 15px; color: var(--sub); margin: 10px 0 0; }
+
+  .toggle { display: flex; gap: 8px; margin-top: 8px; }
+  .toggle button {
+    flex: 1; min-height: 48px; font-size: 15px; line-height: 1.3; padding: 6px 2px; white-space: nowrap;
+    border: 3px solid var(--ink); border-radius: 0; background: var(--paper);
+  }
+  .toggle button[aria-pressed="true"] { background: var(--y); font-weight: 800; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%; min-height: 60px; margin-top: 8px; padding: 10px 12px;
+    background: var(--paper); border: 3px solid var(--ink); border-radius: 0; text-align: left;
+  }
+  .opt .dot { flex: none; width: 20px; height: 20px; border: 2px solid var(--ink); border-radius: 50%; background: #fff; margin-top: 5px; }
+  .opt[aria-pressed="true"] { background: var(--y); }
+  .opt[aria-pressed="true"] .dot { background: var(--ink); box-shadow: inset 0 0 0 3px #fff; }
+  .opt b { display: block; font-size: 17px; font-weight: 800; line-height: 1.5; }
+  .opt small { display: block; font-size: 14px; color: #333; line-height: 1.5; }
+  .q { flex: none; padding: 16px 4px 2px; background: var(--paper); border: 0; border-bottom: 3px solid var(--ink); font-size: 14px; line-height: 1.3; font-weight: 700; }
+  .q[aria-expanded="true"] { background: var(--y); }
+  .head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .head-row h2 { margin: 0; }
+
+  .explain { display: none; margin-top: 12px; border: 2px solid var(--ink); background: var(--paper); padding: 12px; flex-direction: column; gap: 10px; }
+  .explain.on { display: flex; }
+  .explain .t { font-size: 16px; font-weight: 800; line-height: 1.5; }
+  .explain p { margin: 0; font-size: 15px; color: #333; }
+  .ex-row { display: flex; gap: 12px; align-items: flex-start; }
+  .ex-fig { flex: none; background: var(--paper); border: 2px solid var(--ink); padding: 6px; }
+  .ex-fig svg { display: block; }
+  .ex-col { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ex-box { border: 2px solid var(--ink); padding: 8px 10px; }
+  .ex-box .h { font-size: 14px; font-weight: 800; }
+  .ex-box .n { font-size: 17px; font-weight: 800; line-height: 1.5; }
+  .ex-box .d { font-size: 13px; line-height: 1.6; color: #333; }
+  .sub-h { border-top: 1px solid #c4c4c4; padding-top: 10px; }
+  .sub-h .h { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+
+  .btn-sub { min-height: 48px; padding: 0 16px; margin: 10px 8px 0 0; background: var(--paper); border: 3px solid var(--ink); border-radius: 0; font-size: 15px; font-weight: 700; }
+  .btn-main {
+    display: block; width: calc(100% - 6px); height: 58px; margin: 0 6px 24px 0;
+    background: var(--y); border: 3px solid var(--ink); border-radius: 0; box-shadow: 6px 6px 0 var(--shadow);
+    font-size: 18px; font-weight: 800;
+  }
+  .btn-main:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0 var(--shadow); }
+  .clear {
+    width: 100%; height: 52px; font-size: 17px; font-weight: 700; margin: 4px 0 0;
+    border: 3px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink);
+  }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .home-link { display:inline-block; margin:0 0 6px; padding:12px 0 0; font-size:15px; line-height:1.35; font-weight:700; color:var(--ink); text-decoration:none; border-bottom:3px solid var(--y); }
+  .home-link:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }
+
+  .errors { display: none; margin: 0 6px 20px 0; padding: 12px 14px; background: var(--paper); border: 3px solid var(--error); color: var(--error); font-size: 15px; font-weight: 700; line-height: 1.7; }
+  .errors.on { display: block; }
+  .warn { margin-top: 12px; padding: 10px 12px; border: 2px solid var(--ink); font-size: 15px; line-height: 1.7; color: #222; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { min-width: 44px; height: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; background: var(--y); border: 2px solid var(--ink); font-size: 17px; font-weight: 800; }
+  .total { margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 10px; }
+  .total .a { font-size: 17px; font-weight: 800; }
+  .total .a span { background: linear-gradient(transparent 55%, var(--y) 55%); padding: 0 2px; }
+  .total .b { font-size: 15px; color: #333; }
+  .legend { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #333; margin: 6px 0; }
+  .legend u { font-size: 12px; font-weight: 800; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--ink); line-height: 13px; padding: 0 1px; }
+  .chart-box { display: flex; justify-content: center; overflow: hidden; margin-top: 8px; }
+  .chart-box svg { display: block; max-width: 100%; height: auto; }
+  #result { display: none; }
+  #result.on { display: block; }
+  .save-panel { display: none; border: 3px solid var(--ink); background: var(--paper); padding: 14px; margin: 0 6px 24px 0; flex-direction: column; gap: 10px; }
+  .save-panel.on { display: flex; }
+  .save-panel img { display: block; width: 100%; height: auto; max-height: 340px; object-fit: contain; border: 2px solid var(--ink); background: #fff; -webkit-touch-callout: default; }
+  .save-panel .h { font-size: 16px; font-weight: 800; }
+  .save-panel p { margin: 0; font-size: 15px; color: #333; }
+  .act { min-height: 58px; padding: 8px 12px; background: var(--y); border: 3px solid var(--ink); border-radius: 0; text-align: left; display: flex; flex-direction: column; gap: 0; }
+  .act b { font-size: 17px; font-weight: 800; }
+  .act small { font-size: 14px; }
+  .close { min-height: 48px; background: var(--paper); border: 3px solid var(--ink); border-radius: 0; font-size: 15px; font-weight: 700; }
+
+  .fine { font-size: 13px; line-height: 1.7; color: var(--sub); margin: 22px 2px 0; }
+  .foot-stripe {
+    height: 15px; margin: 22px 6px 0 0;
+    background: repeating-linear-gradient(135deg, var(--ink) 0 6px, transparent 6px 12px);
+  }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="index.html">← 編み算 ホームへ</a>
+  <header class="hero">
+    <p class="eyebrow">数字だけの指示を図にする</p>
+    <h1><span class="mark">減らし目の編み図メーカー</span></h1>
+  </header>
+  <p class="lead">「4-1-6」のような減らし目の指示から、編み図を作成します。</p>
+
+  <section>
+    <h2>ご利用の前に</h2>
+    <ul class="notes">
+      <li>本によって、<strong>段の数え方</strong>が違います。「段の数え方」のところで、お手元の本に合う方を選んでください。</li>
+      <li>図は、減っていく<span class="wavy">形だけ</span>を描いたものです。編み目記号や模様は入っていません。</li>
+      <li>2目以上の減らし目は、左側が1段あとになります。</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="head-row">
+      <h2><span class="badge">1</span>段の数え方</h2>
+      <button type="button" class="q" id="q-btn" aria-expanded="false" aria-controls="explain">？数え方とは</button>
+    </div>
+    <p class="hint" style="margin-top:6px">お手元の本に合う数え方を選んでください。どちらか分からないときは、「？数え方とは」を見てください。</p>
+    <div class="explain" id="explain">
+      <div class="t">減らし目の「段-目-回」には、数え方が2通りあります</div>
+      <p>出版社や本によって違います。次の編み図（5段目と9段目に1目ずつ減らして、全部で12段）は、どちらの数え方でも書けます。</p>
+      <div class="ex-row">
+        <div class="ex-fig" id="ex-fig" role="img" aria-label="下から5段目と9段目で左右に1目ずつ減らす、12段の小さな階段状の編み図"></div>
+        <div class="ex-col">
+          <div class="ex-box"><div class="h">その段で減らす</div><div class="n">3段平<br>4-1-1<br>5-1-1</div><div class="d">下から5段目で減らし、4段あけて9段目で減らし、あと3段。</div></div>
+          <div class="ex-box"><div class="h">編み終わってから減らす</div><div class="n">4段平<br>4-1-2</div><div class="d">4段編み終わったら減らし、また4段編み終わったら減らす。最後の減らし目の段も平に入れて4段。</div></div>
+        </div>
+      </div>
+      <div class="sub-h"><div class="h">どちらか分からないとき</div>
+        <p>1目ずつの減らし目は、ふつう表側の段（1, 3, 5…段目）で行います。いちばん下の行の最初の数字が奇数なら「その段で減らす」、偶数なら「編み終わってから減らす」のことが多いです。<br>目安なので、図を作って、減らし目の段が奇数段になっているか確かめてください。</p></div>
+    </div>
+    <button type="button" class="opt" data-mode="same" aria-pressed="true"><span class="dot" aria-hidden="true"></span><span><b>その段で減らす</b><small>10-1-5 → 10, 20, 30, 40, 50段目に減らす</small></span></button>
+    <button type="button" class="opt" data-mode="after" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span><b>編み終わってから減らす</b><small>10-1-5 → 11, 21, 31, 41, 51段目に減らす</small></span></button>
+  </section>
+
+  <section>
+    <h2><span class="badge">2</span>減らす場所</h2>
+    <div class="toggle seg" role="group" aria-label="減らす場所">
+      <button type="button" data-side="both" aria-pressed="true">左右</button>
+      <button type="button" data-side="right" aria-pressed="false">右だけ</button>
+      <button type="button" data-side="left" aria-pressed="false">左だけ</button>
+    </div>
+    <p class="hint tight">「左右」は、1目ずつなら両端を同じ段で減らします。2目以上のときは、左側が1段あとになります（右端で減らした次の段で、左端を減らすため）。</p>
+  </section>
+
+  <section>
+    <h2><span class="badge">3</span>本の表記を入力</h2>
+    <p class="hint">本に書いてある並びのまま、上から入力します。行が足りないときは、下の「＋ 行を追加」で増やせます。</p>
+    <button type="button" class="q" id="sample" style="margin:0 0 6px">入力例を入れてためす</button>
+    <p class="rowcap" style="margin-top:6px">上＝最後に編む（平）</p>
+    <div class="input-row short"><input type="text" id="flat" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="平らに編む段数"><span class="unit">段平</span></div>
+    <div id="rows"></div>
+    <button type="button" class="btn-sub" id="add" style="margin:4px 0 12px">＋ 行を追加</button>
+    <div class="input-row short"><span class="unit">（</span><input type="text" id="bo" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="最初の伏せ目の目数"><span class="unit">目）伏せ目</span></div>
+    <p class="hint tight" style="margin-top:4px">「（2目）伏せ目」のように、段に数えない最初の伏せ目があるときだけ入れます。「1-2-1」のように段として書いてある本では、ここは空欄にして、段・目・回に入れてください。</p>
+    <p class="rowcap">下＝最初に編む</p>
+  </section>
+
+  <section>
+    <h2><span class="badge">4</span>最初の目数（図の幅）</h2>
+    <p class="hint">伏せ目をする前の目数を入れます（伏せ目の分も含みます）。図の幅に使います。多いときは、中央を省略して描きます。</p>
+    <div class="input-row short"><input type="text" id="base" inputmode="numeric" autocomplete="off" value="12" aria-label="最初の目数"><span class="unit">目</span></div>
+  </section>
+
+  <div class="errors" id="errors" role="alert"></div>
+  <button type="button" class="btn-main" id="make">図を作る</button>
+
+  <div id="result" aria-live="polite">
+    <section><h2>入力した内容</h2><div id="r-input"></div></section>
+    <section>
+      <h2>減らし目をする段</h2>
+      <div class="chips" id="r-chips"></div>
+      <p class="hint tight" style="margin-top:6px">段目</p>
+      <div id="r-left"></div>
+      <div class="total" id="r-total"></div>
+      <div class="warn" id="r-hint" style="display:none"></div>
+    </section>
+    <section>
+      <h2>図（下が1段目）</h2>
+      <p class="hint" style="margin-bottom:6px">この図は、減っていく形だけを描いています。編み目記号は入れていないので、印刷して、記号や模様を自由に書き込めます。</p>
+      <div class="legend"><u id="lg-n">5</u><span>下線の数字が減らし目をする段です</span></div>
+      <div class="hint tight" id="r-omit" style="margin:0"></div>
+      <div class="chart-box" id="chart"></div>
+    </section>
+    <button type="button" class="btn-main" id="save" style="margin-bottom:10px">画像を保存</button>
+    <div class="save-panel" id="save-panel">
+      <div class="h">画像を保存</div>
+      <p>JPEG形式の画像ができました。次のどちらかで保存できます。</p>
+      <button type="button" class="act" id="act-share" style="display:none"><b>共有メニューから保存</b><small>「画像を保存」で、写真に入ります</small></button>
+      <button type="button" class="act" id="act-dl" style="display:none"><b>ファイルとして保存</b><small>JPEG形式でダウンロードします</small></button>
+      <p id="dl-msg" style="display:none">ダウンロードを始めました。「ファイル」アプリの「ダウンロード」などに入ります。見つからないときは、下の方法で画像を長押しして保存してください。</p>
+      <div class="h">または、画像を長押しして保存</div>
+      <p>画像を指で長押しして、「共有」→「画像を保存」を選んでください（iPhoneの場合。機種によって表示が違います）。長押しで保存すると、PNG形式になることがあります。</p>
+      <img id="save-img" alt="作った図の画像">
+      <p style="border-top:1px solid #c4c4c4;padding-top:8px">コンビニのネットプリントなどでPNGが使えないときは、上の「共有メニューから保存」で保存してください（JPEG形式になります）。使える形式やサイズは、サービスごとに違います。</p>
+      <button type="button" class="close" id="save-close">閉じる</button>
+    </div>
+    <p class="hint" id="save-note" style="margin:0 0 24px">JPEG形式の画像で保存します。保存のしかたは、ボタンを押すと選べます。</p>
+  </div>
+
+  <button type="button" class="clear" id="clear">入力をすべて消す</button>
+
+  <p class="fine">このツールの計算結果は目安です。ご利用はご自身の判断でお願いします。計算結果によって生じたいかなる損害についても、制作者は責任を負いかねます。</p>
+  <div class="foot-stripe" aria-hidden="true"></div>
+</main>
+
+<script>
+(function () {
+'use strict';
+var $ = function (s) { return document.querySelector(s); };
+var state = { mode: 'same', side: 'both', rows: [], last: null };
+function blankRows(n) { var a = []; for (var i = 0; i < n; i++) a.push({ n: '', m: '', t: '' }); return a; }
+state.rows = blankRows(3);
+
+/* ---------- 数値 ---------- */
+function toInt(s) {
+  s = String(s).replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).trim();
+  if (!/^\d+$/.test(s)) return NaN;
+  return parseInt(s, 10);
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+/* ---------- 入力行 ---------- */
+function renderRows() {
+  var box = $('#rows'); box.innerHTML = '';
+  state.rows.forEach(function (r, i) {
+    var d = document.createElement('div'); d.className = 'triple';
+    var lab = '上から' + (i + 1) + '行目';
+    d.innerHTML =
+      '<input type="text" inputmode="numeric" autocomplete="off" data-i="' + i + '" data-k="n" aria-label="' + lab + ' 段" value="' + esc(r.n) + '"><span class="u">段</span>' +
+      '<input type="text" inputmode="numeric" autocomplete="off" data-i="' + i + '" data-k="m" aria-label="' + lab + ' 目" value="' + esc(r.m) + '"><span class="u">目</span>' +
+      '<input type="text" inputmode="numeric" autocomplete="off" data-i="' + i + '" data-k="t" aria-label="' + lab + ' 回" value="' + esc(r.t) + '"><span class="u">回</span>' +
+      '<button type="button" class="del" data-del="' + i + '" aria-label="' + lab + 'を削除">×</button>';
+    box.appendChild(d);
+  });
+}
+$('#rows').addEventListener('input', function (e) {
+  var t = e.target; if (t.dataset && t.dataset.k) state.rows[+t.dataset.i][t.dataset.k] = t.value;
+});
+$('#rows').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-del]'); if (!b) return;
+  state.rows.splice(+b.dataset.del, 1); if (!state.rows.length) state.rows = blankRows(1); renderRows();
+});
+$('#add').addEventListener('click', function () { state.rows.push({ n: '', m: '', t: '' }); renderRows(); var ins = $('#rows').querySelectorAll('input'); if (ins.length) ins[ins.length - 3].focus(); });
+$('#sample').addEventListener('click', function () {
+  $('#flat').value = '3'; $('#base').value = '12';
+  state.rows = [{ n: '4', m: '1', t: '3' }, { n: '5', m: '1', t: '1' }]; renderRows();
+});
+
+/* ---------- 選択ボタン ---------- */
+function bindGroup(sel, attr, key) {
+  document.querySelectorAll(sel).forEach(function (b) {
+    b.addEventListener('click', function () {
+      state[key] = b.dataset[attr];
+      document.querySelectorAll(sel).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+  });
+}
+bindGroup('.opt', 'mode', 'mode');
+bindGroup('.seg button', 'side', 'side');
+$('#q-btn').addEventListener('click', function () {
+  var on = $('#explain').classList.toggle('on');
+  $('#q-btn').setAttribute('aria-expanded', on ? 'true' : 'false');
+  $('#q-btn').textContent = on ? '？数え方とは ▲' : '？数え方とは';
+});
+
+/* ---------- 計算 ---------- */
+function compute() {
+  var err = [];
+  var flatS = $('#flat').value.trim(), flat = 0;
+  if (flatS !== '') { flat = toInt(flatS); if (isNaN(flat)) { err.push('「段平」は、0以上の整数で入れてください（空欄は0段です）。'); flat = 0; } }
+  var boS = $('#bo').value.trim(), bo = 0;
+  if (boS !== '') { bo = toInt(boS); if (isNaN(bo) || bo < 1) { err.push('「伏せ目」は、1以上の整数で入れてください（空欄なら、なしです）。'); bo = 0; } }
+  var base = toInt($('#base').value);
+  if (isNaN(base) || base < 1) err.push('「最初の目数」は、1以上の整数で入れてください。');
+  var lines = [];
+  state.rows.forEach(function (r, i) {
+    if (String(r.n).trim() === '' && String(r.m).trim() === '' && String(r.t).trim() === '') return;
+    var n = toInt(r.n), m = toInt(r.m), t = toInt(r.t);
+    if (isNaN(n) || isNaN(m) || isNaN(t) || n < 1 || m < 1 || t < 1) { err.push('上から' + (i + 1) + '行目：段・目・回に、1以上の整数を入れてください。'); return; }
+    lines.push({ n: n, m: m, t: t });
+  });
+  if (!lines.length && !err.length) err.push('段・目・回を、1行以上入れてください。');
+  if (err.length) return { err: err };
+  var ops = [], cursor = 0, K = 0, allOne = true;
+  if (bo > 0) { ops.push({ row: 1, m: bo }); K += bo; if (bo !== 1) allOne = false; }
+  lines.slice().reverse().forEach(function (L) {
+    for (var k = 0; k < L.t; k++) {
+      cursor += L.n;
+      ops.push({ row: state.mode === 'same' ? cursor : cursor + 1, m: L.m });
+      K += L.m; if (L.m !== 1) allOne = false;
+    }
+  });
+  if (state.mode === 'after' && flat < 1) return { err: ['「編み終わってから減らす」では、平は1段以上になります（最後に減らす段も平に入ります）。平の段数を確かめてください。'] };
+  var total = cursor + flat;
+  if (total > 400) return { err: ['全体が' + total + '段になり、大きすぎます。400段以内で入れてください。'] };
+  var R = [], L2 = [], shifted = false, useR = state.side !== 'left', useL = state.side !== 'right';
+  ops.forEach(function (o) {
+    if (useR) R.push({ row: o.row, m: o.m });
+    if (useL) {
+      var lr = (state.side === 'both' && o.m >= 2) ? o.row + 1 : o.row;
+      if (lr !== o.row) shifted = true;
+      L2.push({ row: lr, m: o.m });
+    }
+  });
+  var tot2 = total, extended = false;
+  L2.concat(R).forEach(function (o) { if (o.row > tot2) { tot2 = o.row; extended = true; } });
+  var Er = 0, El = 0; R.forEach(function (o) { Er += o.m; }); L2.forEach(function (o) { El += o.m; });
+  if (base - Er - El < 1) return { err: ['減らす目数が多すぎます。最初の目数（' + base + '目）から ' + (Er + El) + '目減らすと、0目以下になります。最初の目数か、目・回の数字を確かめてください。'] };
+  if (base > 400) return { err: ['最初の目数が多すぎます。400目以内で入れてください。'] };
+  var rowsAll = ops.map(function (o) { return o.row; });
+  var text = (flat > 0 ? [flat + '段平'] : []).concat(lines.map(function (L) { return L.n + '-' + L.m + '-' + L.t; })).concat(bo > 0 ? ['（' + bo + '目）伏せ目'] : []).join('／');
+  return { lines: lines, ops: ops, R: R, L: L2, shifted: shifted, flat: flat, base: base, dec: true, total: tot2, baseTotal: total, extended: extended, K: K, allOne: allOne, text: text, rowsAll: rowsAll, mode: state.mode, side: state.side };
+}
+
+/* ---------- 図（SVG） ---------- */
+function buildChart(d, o) {
+  o = o || {};
+  var rh = o.rh || 16, cwMax = o.cwMax || 16, W = o.width || 340, labW = 26, total = d.total, base = d.base;
+  var showL = !!d.showLeftLabels;
+  var padL = showL ? labW : 0, padR = labW;
+  var cl = [], cr = [], i, j;
+  for (i = 0; i <= total + 1; i++) { cl[i] = 0; cr[i] = 0; }
+  d.L.forEach(function (op) { for (j = op.row + (op.m >= 2 ? 1 : 0); j <= total; j++) cl[j] += op.m; });
+  d.R.forEach(function (op) { for (j = op.row + (op.m >= 2 ? 1 : 0); j <= total; j++) cr[j] += op.m; });
+  var El = cl[total], Er = cr[total], cols = base;
+  var avail = W - padL - padR, k = 2, omit = false, cw;
+  cw = Math.min(cwMax, avail / cols);
+  if (!o.noOmit && cw < 8 && base - El - Er - 2 * k >= 2) {
+    omit = true; var gap = 28; cw = Math.min(cwMax, (avail - gap) / (El + Er + 2 * k)); cw = Math.max(cw, 3);
+  } else if (cw < 3) cw = 3;
+  cw = Math.floor(cw * 10) / 10;
+  var gapW = omit ? 28 : 0, Lvis = El + k, Rstart = base - Er - k;
+  var chartW = omit ? (El + Er + 2 * k) * cw + gapW : cols * cw;
+  var headH = (o.header && o.header.length) ? o.header.length * 18 + 10 : 0;
+  var x0 = padL + (o.center === false ? 0 : Math.max(0, (W - padL - padR - chartW) / 2));
+  var H = total * rh, totalW = W, totalH = H + headH + 6;
+  function X(c) { return omit ? (c <= Lvis ? x0 + c * cw : x0 + Lvis * cw + gapW + (c - Rstart) * cw) : x0 + c * cw; }
+  function top(n) { return headH + (total - n) * rh; }
+  function bot(n) { return top(n) + rh; }
+  function xl(n) { return cl[n]; }
+  function xr(n) { return base - cr[n]; }
+  var grid = '', heavy = '', n, c, a, b;
+  var labelX = x0 + chartW + 6; var labelXL = x0 - 6;
+  for (n = 1; n <= total; n++) {
+    var pieces = omit ? [[xl(n), Lvis], [Rstart, xr(n)]] : [[xl(n), xr(n)]];
+    pieces.forEach(function (p) {
+      for (c = p[0] + 1; c < p[1]; c++) grid += 'M' + X(c).toFixed(1) + ' ' + top(n) + 'V' + bot(n);
+      if (n < total) {
+        var seg = 'M' + X(p[0]).toFixed(1) + ' ' + top(n) + 'H' + X(p[1]).toFixed(1);
+        if (n % 10 === 0) heavy += seg; else grid += seg;
+      }
+    });
+  }
+  function leftPts(n1) { var p = []; for (var n = 1; n <= total; n++) { p.push([X(xl(n)), bot(n)]); p.push([X(xl(n)), top(n)]); } return p; }
+  function rightPts() { var p = []; for (var n = total; n >= 1; n--) { p.push([X(xr(n)), top(n)]); p.push([X(xr(n)), bot(n)]); } return p; }
+  function path(pts) { return pts.map(function (q, idx) { return (idx ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(''); }
+  var outline = '', dashed = '';
+  if (!omit) {
+    outline = '<path d="' + path(leftPts().concat(rightPts())) + 'Z" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="miter"/>';
+  } else {
+    var lp = leftPts(), rp = rightPts();
+    var xin = X(Lvis), xin2 = X(Rstart);
+    outline = '<path d="M' + xin + ' ' + bot(1) + 'L' + path(lp).slice(1) + 'L' + xin + ' ' + top(total) + '" fill="none" stroke="#111" stroke-width="2"/>' +
+      '<path d="M' + xin2 + ' ' + top(total) + 'L' + path(rp).slice(1) + 'L' + xin2 + ' ' + bot(1) + '" fill="none" stroke="#111" stroke-width="2"/>';
+    dashed = '<path d="M' + xin + ' ' + top(total) + 'V' + bot(1) + 'M' + xin2 + ' ' + top(total) + 'V' + bot(1) + '" fill="none" stroke="#777" stroke-width="1.5" stroke-dasharray="3 3"/>';
+  }
+  var Rset = {}, Lset = {};
+  d.R.forEach(function (op) { Rset[op.row] = 1; });
+  if (state_isLeftOnly(d)) d.L.forEach(function (op) { Rset[op.row] = 1; });
+  d.L.forEach(function (op) { Lset[op.row] = 1; });
+  var labs = '', fs = Math.min(11, rh - 4);
+  var labelRows = o.labelRows || null;
+  function lab(x, n, under) {
+    var y = top(n) + rh / 2 + fs / 2 - 1;
+    var s = '<text x="' + x + '" y="' + y + '" font-size="' + (under ? fs : fs - 1) + '" text-anchor="middle" fill="' + (under ? '#111' : '#555') + '"' + (under ? ' font-weight="800"' : '') + '>' + n + '</text>';
+    if (under) { var w = String(n).length * fs * 0.6 + 2; s += '<line x1="' + (x - w / 2) + '" y1="' + (y + 2.5) + '" x2="' + (x + w / 2) + '" y2="' + (y + 2.5) + '" stroke="#111" stroke-width="2"/>'; }
+    return s;
+  }
+  for (n = 1; n <= total; n++) {
+    if (labelRows && !labelRows[n] && !Rset[n]) continue;
+    labs += lab(labelX + (labW - 6) / 2 - 3, n, !!Rset[n]);
+    if (showL && !(labelRows && !labelRows[n] && !Lset[n])) labs += lab(labelXL - (labW - 6) / 2 + 3, n, !!Lset[n] && d.shifted);
+  }
+  var head = '';
+  if (o.header) o.header.forEach(function (t, idx) { head += '<text x="' + 8 + '" y="' + (14 + idx * 18) + '" font-size="12" fill="#111"' + (idx === 0 ? ' font-weight="800"' : '') + '>' + esc(t) + '</text>'; });
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + totalW + ' ' + totalH + '" width="' + totalW + '" height="' + totalH + '" font-family="\'Hiragino Sans\',\'Hiragino Kaku Gothic ProN\',\'Yu Gothic\',Meiryo,sans-serif">' +
+    '<rect width="100%" height="100%" fill="#fff"/>' + head +
+    '<path d="' + grid + '" fill="none" stroke="#9a9a9a" stroke-width="1"/>' +
+    (heavy ? '<path d="' + heavy + '" fill="none" stroke="#777" stroke-width="1.6"/>' : '') +
+    dashed + outline + labs + '</svg>';
+  return { svg: svg, w: totalW, h: totalH, omit: omit, omitted: base - El - Er - 2 * k };
+}
+function state_isLeftOnly(d) { return d.side === 'left'; }
+
+/* ---------- 結果の表示 ---------- */
+function show(d) {
+  d.showLeftLabels = d.side === 'both' && d.shifted;
+  var modeT = d.mode === 'same' ? 'その段で減らす' : '編み終わってから減らす';
+  var sideT = { both: '左右', right: '右だけ', left: '左だけ' }[d.side];
+  $('#r-input').innerHTML = '<div style="font-size:17px;line-height:1.6;font-weight:700">' + esc(d.text) + '</div><div class="hint" style="margin:4px 0 0">数え方：' + modeT + '<br>減らす場所：' + sideT + '<br>最初の目数：' + d.base + '目</div>';
+  var rows = Array.from(new Set(d.rowsAll)).sort(function (a, b) { return a - b; });
+  $('#lg-n').textContent = rows[0];
+  $('#r-chips').innerHTML = rows.map(function (r) { return '<span class="chip">' + r + '</span>'; }).join('');
+  var leftTxt = '';
+  if (d.showLeftLabels) {
+    var lr = Array.from(new Set(d.L.map(function (o) { return o.row; }))).sort(function (a, b) { return a - b; });
+    leftTxt = '<div class="hint tight" style="margin-top:6px">右端は ' + rows.join(', ') + ' 段目、左端はその次の ' + lr.join(', ') + ' 段目に減らします（2目以上は、左端が1段あと）。</div>';
+  }
+  $('#r-left').innerHTML = leftTxt;
+  var perSide = d.K, sideLine = d.side === 'both' ? ('片側 −' + perSide + '目（左右で −' + perSide * 2 + '目）') : ((d.side === 'right' ? '右側' : '左側') + ' −' + perSide + '目');
+  $('#r-total').innerHTML = '<div class="a"><span>合計 ' + d.baseTotal + '段</span>（平ら ' + d.flat + '段を含む）</div><div class="b">' + sideLine + '</div>' +
+    (d.extended ? '<div class="b">※ 左端の最後の減らし目が次の段になるため、図は ' + d.total + '段になります。</div>' : '');
+  var hint = $('#r-hint');
+  var even = d.allOne && rows.some(function (r) { return r % 2 === 0; });
+  if (even) { hint.style.display = 'block'; hint.textContent = '減らし目の段に偶数段が含まれています。1目ずつの減らし目は、ふつう表側の段（奇数段）で行います。「段の数え方」の選び方が、本と合っているか確かめてください。'; }
+  else hint.style.display = 'none';
+  var ch = buildChart(d, {});
+  $('#chart').innerHTML = ch.svg;
+  $('#chart svg').setAttribute('role', 'img');
+  $('#chart svg').setAttribute('aria-label', '減らし目の階段状の編み図。全' + d.total + '段。減らし目の段は ' + rows.join('、') + ' 段目。');
+  $('#r-omit').textContent = ch.omit ? '点線の間（中央' + ch.omitted + '目分）は省略しています' : '';
+  state.last = d;
+  $('#save-panel').classList.remove('on');
+  $('#result').classList.add('on');
+  $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('#make').addEventListener('click', function () {
+  var e = $('#errors'), d = compute();
+  if (d.err) { e.innerHTML = d.err.map(esc).join('<br>'); e.classList.add('on'); e.scrollIntoView({ block: 'center' }); return; }
+  e.classList.remove('on'); show(d);
+});
+
+/* ---------- 画像保存（JPEG） ---------- */
+var savedBlob = null, savedUrl = null;
+function makeImage(cb) {
+  var d = state.last; if (!d) return;
+  var modeT = d.mode === 'same' ? 'その段で減らす' : '編み終わってから減らす';
+  var sideT = { both: '左右', right: '右だけ', left: '左だけ' }[d.side];
+  var ch = buildChart(d, { header: ['減らし目の編み図メーカー（編み算）', d.text, modeT + '／' + sideT + '／最初の ' + d.base + '目'] });
+  var scale = Math.min(3, Math.sqrt(12000000 / (ch.w * ch.h)));
+  var img = new Image();
+  img.onload = function () {
+    var cv = document.createElement('canvas'); cv.width = Math.round(ch.w * scale); cv.height = Math.round(ch.h * scale);
+    var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    cx.drawImage(img, 0, 0, cv.width, cv.height);
+    cv.toBlob(function (b) { cb(b); }, 'image/jpeg', 0.92);
+  };
+  img.onerror = function () { cb(null); };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ch.svg);
+}
+$('#save').addEventListener('click', function () {
+  var btn = $('#save'); btn.disabled = true; btn.textContent = '画像を作っています…';
+  makeImage(function (b) {
+    btn.disabled = false; btn.textContent = '画像を保存';
+    if (!b) { var e = $('#errors'); e.textContent = '画像を作れませんでした。お使いのブラウザでは、画像の保存に対応していないかもしれません。'; e.classList.add('on'); return; }
+    if (savedUrl) URL.revokeObjectURL(savedUrl);
+    savedBlob = b; savedUrl = URL.createObjectURL(b);
+    var fr = new FileReader(); fr.onload = function () { $('#save-img').src = fr.result; }; fr.readAsDataURL(b);
+    var file = null, canShare = false;
+    try { file = new File([b], 'masume.jpg', { type: 'image/jpeg' }); canShare = !!(navigator.canShare && navigator.canShare({ files: [file] })); } catch (x) { canShare = false; }
+    $('#act-share').style.display = canShare ? 'flex' : 'none';
+    $('#act-dl').style.display = canShare ? 'none' : 'flex';
+    $('#act-share').onclick = function () { navigator.share({ files: [file] }).catch(function () {}); };
+    $('#act-dl').onclick = function () { var a = document.createElement('a'); a.href = savedUrl; a.download = 'masume.jpg'; document.body.appendChild(a); a.click(); a.remove(); $('#dl-msg').style.display = 'block'; };
+    $('#save-panel').classList.add('on');
+    $('#save-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+$('#save-close').addEventListener('click', function () { $('#save-panel').classList.remove('on'); });
+
+/* ---------- 全消去 ---------- */
+$('#clear').addEventListener('click', function () {
+  state.rows = blankRows(3); renderRows();
+  $('#flat').value = ''; $('#bo').value = ''; $('#base').value = '12';
+  $('#errors').classList.remove('on'); $('#result').classList.remove('on'); $('#save-panel').classList.remove('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ---------- 解説の小さな図 ---------- */
+(function () {
+  var d = { total: 12, base: 8, R: [{ row: 5, m: 1 }, { row: 9, m: 1 }], L: [{ row: 5, m: 1 }, { row: 9, m: 1 }], shifted: false, showLeftLabels: false, side: 'both' };
+  var ch = buildChart(d, { rh: 14, cwMax: 14, width: 120, center: true, noOmit: true, labelRows: { 1: 1, 5: 1, 9: 1, 12: 1 } });
+  $('#ex-fig').innerHTML = ch.svg;
+})();
+
+renderRows();
+})();
+</script>
+</body>
+</html>
